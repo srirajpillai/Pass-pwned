@@ -246,6 +246,8 @@ the breach card leaks no service or prefix details).
 2. Add these Vercel environment variables for **Production**:
   `SECRET_KEY` (a long random value), `DATABASE_URL` (a hosted PostgreSQL
   connection string), and optionally `HIBP_TIMEOUT` and `RANGE_CACHE_TTL`.
+  You can create a free PostgreSQL database with Neon or Supabase, then copy
+  its connection string into `DATABASE_URL`.
 3. Deploy the `main` branch. The public URL will be provided by Vercel.
 4. Initialise the production database once from a local shell using the same
   `DATABASE_URL` and production `SECRET_KEY`:
@@ -260,6 +262,12 @@ For real organisation users, API keys, and password statistics, set
 `DATABASE_URL` to hosted PostgreSQL. Keep `DATABASE_URL` and `SECRET_KEY` in
 Vercel's Environment Variables, never in GitHub. The app creates missing
 tables on startup; existing databases are upgraded with the API-key columns.
+
+If Vercel still shows `FUNCTION_INVOCATION_FAILED`, open **Vercel → Project →
+Logs** and check that `DATABASE_URL` is present under the **Production** scope,
+the URL starts with `postgresql://` or `postgres://`, and the database allows
+connections from external services. Redeploy after changing an environment
+variable.
 
 **Docker**
 

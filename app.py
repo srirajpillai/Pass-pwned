@@ -41,8 +41,9 @@ def _utcnow():
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
-    os.makedirs(os.path.join(os.path.dirname(__file__), "instance"),
-                exist_ok=True)
+    if not os.environ.get("VERCEL"):
+        os.makedirs(os.path.join(os.path.dirname(__file__), "instance"),
+                    exist_ok=True)
 
     db.init_app(app)
     login_manager.init_app(app)
