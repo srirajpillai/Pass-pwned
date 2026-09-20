@@ -254,10 +254,12 @@ the breach card leaks no service or prefix details).
 DATABASE_URL="postgresql://..." SECRET_KEY="..." python -m flask --app app init-db
 ```
 
-Do not use the default SQLite database for Vercel. Serverless deployments do
-not provide durable local disk, so organisation users, API keys, and password
-statistics would not be reliable. Keep `DATABASE_URL` and `SECRET_KEY` in
-Vercel's Environment Variables, never in GitHub.
+Do not rely on the temporary SQLite fallback on Vercel. It is only there to
+allow a demo deployment to start, and serverless local disk is not durable.
+For real organisation users, API keys, and password statistics, set
+`DATABASE_URL` to hosted PostgreSQL. Keep `DATABASE_URL` and `SECRET_KEY` in
+Vercel's Environment Variables, never in GitHub. The app creates missing
+tables on startup; existing databases are upgraded with the API-key columns.
 
 **Docker**
 

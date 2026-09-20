@@ -3,15 +3,20 @@ import os
 from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = "postgresql+psycopg2://" + DATABASE_URL[len("postgres://"):]
+if not DATABASE_URL:
+    database_path = ("/tmp/password_analyser.db" if os.environ.get("VERCEL")
+                     else os.path.join(BASE_DIR, "instance", "app.db"))
+    DATABASE_URL = "sqlite:///" + database_path
 
 
 class Config:
     SECRET_KEY = os.environ.get("SECRET_KEY", "dev-only-change-me-in-production")
 
     # database
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL", "sqlite:///" + os.path.join(BASE_DIR, "instance", "app.db")
-    )
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # session
