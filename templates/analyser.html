@@ -116,16 +116,16 @@
     <div class="stat-grid">
       <div class="metric" style="box-shadow:none">
         <div class="label">Checks</div>
-        <div class="value">{{ stats.total }}</div>
+        <div class="value" id="userChecks">{{ stats.total }}</div>
       </div>
       <div class="metric" style="box-shadow:none">
         <div class="label">Average score</div>
-        <div class="value">{{ stats.avg_score }}</div>
+        <div class="value" id="userAverage">{{ stats.avg_score }}</div>
       </div>
       <div class="metric" style="box-shadow:none">
         <div class="label">Found in breaches</div>
-        <div class="value danger">{{ stats.breached }}</div>
-        <div class="sub">{{ stats.breached_pct }}% of your checks</div>
+        <div class="value danger" id="userBreached">{{ stats.breached }}</div>
+        <div class="sub" id="userBreachedPct">{{ stats.breached_pct }}% of your checks</div>
       </div>
       <div class="metric" style="box-shadow:none">
         <div class="label">Weak (score &lt; 41)</div>

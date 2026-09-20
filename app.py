@@ -138,6 +138,11 @@ def create_app(config_class=Config):
     def health():
         return jsonify({"status": "ok"})
 
+    @app.route("/api/stats/summary")
+    def stats_summary():
+        """Return the small public summary used by the landing page."""
+        return jsonify(stats_svc.headline(None))
+
     @app.route("/api/range/<prefix>")
     def api_range(prefix):
         """k-anonymity range lookup - returns only suffix:count pairs."""
@@ -209,9 +214,8 @@ def create_app(config_class=Config):
         return redirect(url_for("dashboard"))
 
     @app.route("/api/analysis", methods=["POST"])
-    @login_required
     def api_save_analysis():
-        """Store *metadata only* - the password is never transmitted."""
+        """Store analysis metadata for global and signed-in statistics."""
         data = request.get_json(silent=True) or {}
         try:
             score = int(data.get("score", 0))
@@ -227,7 +231,7 @@ def create_app(config_class=Config):
         names = [str(p)[:64] for p in raw_patterns][:12]
 
         row = Analysis(
-            user_id=current_user.id,
+            user_id=(current_user.id if current_user.is_authenticated else None),
             length=max(0, length),
             score=max(0, min(100, score)),
             verdict=str(data.get("verdict", ""))[:32],
@@ -242,7 +246,13 @@ def create_app(config_class=Config):
         )
         db.session.add(row)
         db.session.commit()
-        return jsonify({"saved": True, "id": row.id})
+        owner = current_user if current_user.is_authenticated else None
+        return jsonify({
+            "saved": True,
+            "id": row.id,
+            "global": stats_svc.headline(None),
+            "user": stats_svc.headline(owner) if owner else None,
+        })
 
     # ------------------------------------------------------------ auth views
     @app.route("/register", methods=["GET", "POST"])

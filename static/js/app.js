@@ -383,6 +383,34 @@
     return "No obvious shortcut was found. An attacker would need a broader brute-force search.";
   }
 
+  function updateStats(stats) {
+    if (!stats) return;
+    const values = {
+      globalChecks: stats.global && stats.global.total,
+      globalAverage: stats.global && stats.global.avg_score,
+      globalBreached: stats.global && stats.global.breached_pct + "%",
+      userChecks: stats.user && stats.user.total,
+      userAverage: stats.user && stats.user.avg_score,
+      userBreached: stats.user && stats.user.breached,
+      userBreachedPct: stats.user && stats.user.breached_pct + "% of your checks"
+    };
+    Object.keys(values).forEach(function (id) {
+      const node = el(id);
+      if (node && values[id] !== null && values[id] !== undefined) {
+        node.textContent = values[id];
+      }
+    });
+  }
+
+  if (el("globalChecks")) {
+    const refreshGlobalStats = () =>
+      fetch("/api/stats/summary", { cache: "no-store" })
+        .then(r => r.ok ? r.json() : null)
+        .then(stats => stats && updateStats({ global: stats }))
+        .catch(() => {});
+    setInterval(refreshGlobalStats, 15000);
+  }
+
   function render(result, breach) {
     el("emptyState").style.display = "none";
     el("resultPanel").style.display = "block";
@@ -489,7 +517,7 @@
   }
 
   function autoSave() {
-    if (!window.PSA_LOGGED_IN || !lastResult || !lastBreach) return;
+    if (!lastResult || !lastBreach) return;
     fetch("/api/analysis", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -506,7 +534,8 @@
         pattern_count: lastResult.patterns.length,
         patterns: lastResult.patterns.map(function (p) { return p.name; })
       })
-    }).then(r => r.json()).catch(() => { /* history is best effort */ });
+    }).then(r => r.json()).then(updateStats)
+      .catch(() => { /* statistics are best effort */ });
   }
 
   const form = el("analyseForm");

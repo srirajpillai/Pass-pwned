@@ -21,11 +21,11 @@
   </div>
 
   <div class="row tight mt-4" style="gap:26px">
-    <div><div style="font-size:22px;font-weight:650">{{ totals.total }}</div>
+    <div><div id="globalChecks" style="font-size:22px;font-weight:650">{{ totals.total }}</div>
       <div class="muted small">checks recorded</div></div>
-    <div><div style="font-size:22px;font-weight:650">{{ totals.avg_score }}</div>
+    <div><div id="globalAverage" style="font-size:22px;font-weight:650">{{ totals.avg_score }}</div>
       <div class="muted small">average score</div></div>
-    <div><div style="font-size:22px;font-weight:650;color:var(--red)">{{ totals.breached_pct }}%</div>
+    <div><div id="globalBreached" style="font-size:22px;font-weight:650;color:var(--red)">{{ totals.breached_pct }}%</div>
       <div class="muted small">found in breaches</div></div>
   </div>
 </section>
