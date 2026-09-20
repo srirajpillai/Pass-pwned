@@ -241,9 +241,8 @@ the breach card leaks no service or prefix details).
 
 ### Vercel
 
-1. Import `srirajpillai/Pass-pwned` into Vercel. The `api/index.py` function
-  exports the Flask app and the included `vercel.json` rewrites all routes to
-  it.
+1. Import `srirajpillai/Pass-pwned` into Vercel. Vercel detects the top-level
+  `app.py` Flask instance automatically.
 2. Add these Vercel environment variables for **Production**:
   `SECRET_KEY` (a long random value), `DATABASE_URL` (your Neon connection
   string), and optionally `HIBP_TIMEOUT` and `RANGE_CACHE_TTL`.
