@@ -70,6 +70,22 @@
 /* ------------------------------------------------------------------ base -- */
 * { box-sizing: border-box; }
 
+html.js body { animation: page-in .28s ease both; }
+html.page-leaving body { animation: page-out .16s ease both; }
+
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes page-out {
+  from { opacity: 1; }
+  to { opacity: .55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.js body, html.page-leaving body { animation: none; }
+}
+
 html, body { height: 100%; }
 
 body {

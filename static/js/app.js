@@ -10,6 +10,20 @@
 (function () {
   "use strict";
 
+  document.documentElement.classList.add("js");
+  setTimeout(function () {
+    document.documentElement.classList.add("page-ready");
+  }, 0);
+
+  document.addEventListener("click", function (e) {
+    const link = e.target.closest("a");
+    if (!link || e.defaultPrevented || link.target === "_blank" ||
+        e.metaKey || e.ctrlKey || e.shiftKey || e.altKey ||
+        link.origin !== window.location.origin ||
+        (link.pathname === window.location.pathname && link.hash)) return;
+    document.documentElement.classList.add("page-leaving");
+  });
+
   /* ------------------------------------------------------------ theme ---- */
   const THEME_KEY = "psa-theme";
   const root = document.documentElement;

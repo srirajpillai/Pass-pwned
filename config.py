@@ -19,6 +19,16 @@ class Config:
     # database
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SEND_FILE_MAX_AGE_DEFAULT = 31536000
+    TEMPLATES_AUTO_RELOAD = os.environ.get("FLASK_DEBUG", "0") == "1"
+
+    if DATABASE_URL.startswith("postgresql"):
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            "pool_pre_ping": True,
+            "pool_recycle": 280,
+            "pool_size": 3,
+            "max_overflow": 2,
+        }
 
     # session
     REMEMBER_COOKIE_DURATION = timedelta(days=7)
