@@ -3,7 +3,8 @@ import os
 from datetime import timedelta
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = (os.environ.get("DATABASE_URL") or
+                os.environ.get("POSTGRES_URL"))
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = "postgresql+psycopg2://" + DATABASE_URL[len("postgres://"):]
 if not DATABASE_URL:

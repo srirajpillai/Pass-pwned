@@ -245,10 +245,8 @@ the breach card leaks no service or prefix details).
   exports the Flask app and the included `vercel.json` rewrites all routes to
   it.
 2. Add these Vercel environment variables for **Production**:
-  `SECRET_KEY` (a long random value), `DATABASE_URL` (a hosted PostgreSQL
-  connection string), and optionally `HIBP_TIMEOUT` and `RANGE_CACHE_TTL`.
-  You can create a free PostgreSQL database with Neon or Supabase, then copy
-  its connection string into `DATABASE_URL`.
+  `SECRET_KEY` (a long random value), `DATABASE_URL` (your Neon connection
+  string), and optionally `HIBP_TIMEOUT` and `RANGE_CACHE_TTL`.
 3. Deploy the `main` branch. The public URL will be provided by Vercel.
 4. Initialise the production database once from a local shell using the same
   `DATABASE_URL` and production `SECRET_KEY`:
@@ -269,6 +267,30 @@ Logs** and check that `DATABASE_URL` is present under the **Production** scope,
 the URL starts with `postgresql://` or `postgres://`, and the database allows
 connections from external services. Redeploy after changing an environment
 variable.
+
+### Recommended database: Neon PostgreSQL
+
+Use Neon for the deployed database. It is PostgreSQL, so it works with the
+application without changing the data models.
+
+1. Open [neon.tech](https://neon.tech) and create an account.
+2. Create a project named `password-analyser`.
+3. Choose the default PostgreSQL database and copy the connection string. It
+  should look similar to:
+
+```text
+postgresql://user:password@ep-example.region.aws.neon.tech/neondb?sslmode=require
+```
+
+4. In Vercel, open **Project Settings → Environment Variables**.
+5. Add `DATABASE_URL` with the Neon connection string and select **Production**.
+6. Add `SECRET_KEY` with a long random value and select **Production**.
+7. Save the variables and redeploy the latest `main` commit.
+
+The application creates its tables automatically when the Vercel function
+starts. After deployment, open `/register`, create the first company account,
+open **Statistics**, and generate an organisation API key. Do not commit the
+Neon connection string or `SECRET_KEY` to GitHub.
 
 **Docker**
 
