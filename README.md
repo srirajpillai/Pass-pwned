@@ -239,6 +239,26 @@ the breach card leaks no service or prefix details).
 
 ## 9. Deployment
 
+### Vercel
+
+1. Import `srirajpillai/Pass-pwned` into Vercel. The included `vercel.json`
+  exports the Flask app correctly.
+2. Add these Vercel environment variables for **Production**:
+  `SECRET_KEY` (a long random value), `DATABASE_URL` (a hosted PostgreSQL
+  connection string), and optionally `HIBP_TIMEOUT` and `RANGE_CACHE_TTL`.
+3. Deploy the `main` branch. The public URL will be provided by Vercel.
+4. Initialise the production database once from a local shell using the same
+  `DATABASE_URL` and production `SECRET_KEY`:
+
+```bash
+DATABASE_URL="postgresql://..." SECRET_KEY="..." python -m flask --app app init-db
+```
+
+Do not use the default SQLite database for Vercel. Serverless deployments do
+not provide durable local disk, so organisation users, API keys, and password
+statistics would not be reliable. Keep `DATABASE_URL` and `SECRET_KEY` in
+Vercel's Environment Variables, never in GitHub.
+
 **Docker**
 
 ```bash
