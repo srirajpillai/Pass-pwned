@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.11", "3.12" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        env:
+          SECRET_KEY: ci-secret-key
+        run: pytest -q
+
+      - name: Smoke test the app
+        env:
+          SECRET_KEY: ci-secret-key
+        run: |
+          python seed.py
+          python - <<'PY'
+          from app import create_app
+          from extensions import db
+          from models import User
+          app = create_app()
+          with app.app_context():
+              db.create_all()
+              assert User.query.filter_by(username="admin").first() is not None
+          c = app.test_client()
+          assert c.get("/").status_code == 200
+          assert c.get("/api/health").get_json()["status"] == "ok"
+          assert c.get("/api/range/5BAA6").status_code == 200
+          print("smoke test OK")
+          PY

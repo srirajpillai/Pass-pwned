@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Log in · Password Strength Analyser{% endblock %}
+
+{% block content %}
+<div class="container narrow" style="padding-top:56px;padding-bottom:56px">
+  <div class="center mb-3">
+    <h1 style="font-size:24px">Welcome back</h1>
+    <p class="muted small mb-0">Log in to keep a private history of your checks.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <form method="post" novalidate>
+        <div class="field">
+          <label for="username">Username</label>
+          <input class="input" id="username" name="username" type="text"
+                 placeholder="your username" required autofocus>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input class="input" id="password" name="password" type="password"
+                 placeholder="••••••••" required>
+        </div>
+        <label class="row tight small" style="margin-bottom:14px">
+          <input type="checkbox" name="remember"> Remember me for 7 days
+        </label>
+        <button class="btn primary block" type="submit">Log in</button>
+      </form>
+    </div>
+  </div>
+
+  <p class="center muted small mt-2">
+    No account yet? <a href="{{ url_for('register') }}">Create one</a>
+  </p>
+  <p class="center muted tiny mt-1">Demo admin — <code>admin</code> / <code>admin123</code></p>
+</div>
+{% endblock %}

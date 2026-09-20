@@ -1,0 +1,29 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+# virtual environments
+.venv/
+venv/
+env/
+
+# local database & uploads
+instance/
+*.db
+*.sqlite3
+
+# environment
+.env
+
+# tooling
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

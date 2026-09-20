@@ -1,0 +1,142 @@
+{% extends "app_base.html" %}
+{% block title %}Admin · Password Strength Analyser{% endblock %}
+{% block page_title %}Admin panel{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+  <h1>Administration</h1>
+  <p>System-wide statistics, user management and the audit trail.</p>
+</div>
+
+<div class="stat-grid mb-2">
+  <div class="metric">
+    <div class="label">Registered users</div>
+    <div class="value">{{ overview.users }}</div>
+    <div class="sub">{{ overview.active_users }} active · {{ overview.admins }} admin</div>
+  </div>
+  <div class="metric">
+    <div class="label">Checks recorded</div>
+    <div class="value">{{ headline.total }}</div>
+    <div class="sub">average score {{ headline.avg_score }}</div>
+  </div>
+  <div class="metric">
+    <div class="label">Found in breaches</div>
+    <div class="value danger">{{ headline.breached }}</div>
+    <div class="sub">{{ headline.breached_pct }}% of all checks</div>
+  </div>
+  <div class="metric">
+    <div class="label">Average password length</div>
+    <div class="value">{{ overview.avg_length }}</div>
+    <div class="sub">{{ overview.avg_entropy }} bits average entropy</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>Recent analyses</h3>
+    <span class="spacer"></span>
+    <span class="muted small">{{ rows.total }} total</span>
+  </div>
+  {% if rows.items %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>When</th><th>User</th><th>Score</th><th>Verdict</th>
+            <th>Len</th><th>Entropy</th><th>Weaknesses</th><th>Breach</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for r in rows.items %}
+        <tr>
+          <td>{{ r.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td>{{ r.author.username if r.author else 'anonymous' }}</td>
+          <td><strong>{{ r.score }}</strong></td>
+          <td>{{ r.verdict }}</td>
+          <td>{{ r.length }}</td>
+          <td>{{ r.entropy_bits }} bits</td>
+          <td class="wrap-ok">
+            {% if r.pattern_names %}{{ r.pattern_names|join(', ') }}
+            {% else %}<span class="muted">none</span>{% endif %}
+          </td>
+          <td>
+            {% if r.breached %}<span class="badge danger">{{ r.breach_count }}×</span>
+            {% else %}<span class="badge ok">clean</span>{% endif %}
+          </td>
+          <td>
+            <form method="post"
+                  action="{{ url_for('delete_analysis', analysis_id=r.id) }}"
+                  onsubmit="return confirm('Delete this record?')">
+              <button class="btn sm danger" type="submit">Delete</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if rows.pages > 1 %}
+  <div class="pager">
+    {% if rows.has_prev %}<a href="{{ url_for('admin', page=rows.prev_num) }}">‹ Prev</a>{% endif %}
+    <span>{{ rows.page }} / {{ rows.pages }}</span>
+    {% if rows.has_next %}<a href="{{ url_for('admin', page=rows.next_num) }}">Next ›</a>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+    <div class="empty">No analyses recorded yet.</div>
+  {% endif %}
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>Users</h3></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th>
+            <th>Joined</th><th>Status</th><th></th></tr>
+      </thead>
+      <tbody>
+      {% for u in users %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td><strong>{{ u.username }}</strong></td>
+          <td>{{ u.email }}</td>
+          <td>{% if u.is_admin %}<span class="badge info">admin</span>
+              {% else %}<span class="badge">user</span>{% endif %}</td>
+          <td>{{ u.created_at.strftime('%d %b %Y') }}</td>
+          <td>{% if u.is_active %}<span class="badge ok">active</span>
+              {% else %}<span class="badge danger">disabled</span>{% endif %}</td>
+          <td>
+            {% if u.id != current_user.id %}
+            <form method="post" action="{{ url_for('toggle_user', user_id=u.id) }}">
+              <button class="btn sm" type="submit">
+                {{ 'Disable' if u.is_active else 'Enable' }}</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h3>Audit trail</h3></div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>When</th><th>Action</th><th>Detail</th><th>IP</th></tr></thead>
+      <tbody>
+      {% for l in logs %}
+        <tr>
+          <td>{{ l.created_at.strftime('%d %b %Y, %H:%M') }}</td>
+          <td><span class="badge">{{ l.action }}</span></td>
+          <td>{{ l.detail or '—' }}</td>
+          <td class="mono">{{ l.ip_address or '—' }}</td>
+        </tr>
+      {% endfor %}
+      {% if not logs %}<tr><td colspan="4" class="empty">No activity yet.</td></tr>{% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} · Password Strength Analyser{% endblock %}
+
+{% block content %}
+<div class="container narrow center" style="padding-top:72px;padding-bottom:72px">
+  <div style="font-size:44px;font-weight:650;letter-spacing:-.03em">{{ code }}</div>
+  <p class="soft mt-1">{{ message }}</p>
+  <a class="btn primary mt-2" href="{{ url_for('landing') }}">Back to home</a>
+</div>
+{% endblock %}

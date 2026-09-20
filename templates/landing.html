@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% block title %}Password Strength Analyser &amp; Breach Checker{% endblock %}
+
+{% block content %}
+
+<!-- ============================================================ HERO ==== -->
+<section class="container hero">
+  <span class="kicker"><span class="badge ok"><span class="dot"></span>k-anonymity</span>
+    Your password never leaves the browser</span>
+
+  <h1>Know if your password is strong.</h1>
+
+  <p class="lede">
+    Check your password, see what makes it weak, and get a clear score. Your
+    password stays in your browser.
+  </p>
+
+  <div class="cta row">
+    <a class="btn lg primary" href="{{ url_for('analyser') }}">Analyse a password</a>
+    <a class="btn lg" href="#how">How it works</a>
+  </div>
+
+  <div class="row tight mt-4" style="gap:26px">
+    <div><div style="font-size:22px;font-weight:650">{{ totals.total }}</div>
+      <div class="muted small">checks recorded</div></div>
+    <div><div style="font-size:22px;font-weight:650">{{ totals.avg_score }}</div>
+      <div class="muted small">average score</div></div>
+    <div><div style="font-size:22px;font-weight:650;color:var(--red)">{{ totals.breached_pct }}%</div>
+      <div class="muted small">found in breaches</div></div>
+  </div>
+</section>
+
+<!-- ======================================================== FEATURES ==== -->
+<section class="section alt">
+  <div class="container">
+    <div class="head">
+      <h2>What it does</h2>
+      <p>Everything you need to make better passwords.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature">
+        <div class="ico">◔</div>
+        <h3>Real strength scoring</h3>
+          <p>See how hard your password would be to guess, not just whether it
+            has a capital letter and a number.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">⚠</div>
+        <h3>Attack-pattern detection</h3>
+          <p>Find common words, number sequences, repeated characters, keyboard
+            patterns, and other weaknesses.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">⏱</div>
+        <h3>Crack-time estimate</h3>
+          <p>Get an easy-to-read estimate of how long an offline attack could
+            take.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">◍</div>
+        <h3>Breach lookup</h3>
+          <p>Check whether it has appeared in known breaches. Your password is
+            never sent to the server.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">◫</div>
+        <h3>Statistics</h3>
+        <p>See your scores, common weaknesses, and progress over time.</p>
+      </div>
+      <div class="feature">
+        <div class="ico">☰</div>
+        <h3>Private history</h3>
+        <p>Sign in to save your results. We store results, not your passwords.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== HOW ==== -->
+<section class="section" id="how">
+  <div class="container">
+    <div class="head">
+      <h2>How the breach check stays private</h2>
+      <p>Your password is checked privately in four simple steps.</p>
+    </div>
+
+    <div class="how">
+      <div class="step">
+        <div class="n">1</div>
+        <div><h3>The browser hashes it</h3>
+          <p>The SHA-1 digest of your password is computed locally with the
+             Web Crypto API. The password itself never touches the network.</p></div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <div><h3>Five characters are sent</h3>
+          <p>Only the first five characters of the digest —
+             <span class="mono">5BAA6</span> — are requested from the range
+             API. That prefix is shared by roughly a million different
+             passwords.</p></div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <div><h3>The server returns a list</h3>
+          <p>It replies with every suffix in that range plus a count. It has
+             no way to tell which entry you were looking for.</p></div>
+      </div>
+      <div class="step">
+        <div class="n">4</div>
+        <div><h3>The match happens on your device</h3>
+          <p>Your browser compares its own suffix against the list and reports
+             the result. The server never learns it.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================== COMPARE ==== -->
+<section class="section alt" id="compare">
+  <div class="container">
+    <div class="head">
+      <h2>Why this beats a complexity meter</h2>
+      <p>NIST SP 800-63B recommends length and screening against known-bad
+         passwords over composition rules. Here is what that looks like in
+         practice.</p>
+    </div>
+
+    <div class="card">
+      <div class="table-wrap">
+        <table class="compare">
+          <thead>
+            <tr><th>Password</th><th>Complexity rules</th><th>This tool</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">P@ssw0rd</td>
+              <td class="good">Passes</td>
+              <td class="bad">Very weak · 8/100</td>
+              <td>A leet variant of the single most breached password in the world.</td>
+            </tr>
+            <tr>
+              <td class="mono">aaaa1111</td>
+              <td class="good">Passes</td>
+              <td class="bad">Very weak · 0/100</td>
+              <td>Eight characters, but only two distinct ones and one run.</td>
+            </tr>
+            <tr>
+              <td class="mono">Tr0ub4dor&amp;3</td>
+              <td class="good">Passes</td>
+              <td class="bad">Weak</td>
+              <td>Short, and built from a dictionary word with substitutions.</td>
+            </tr>
+            <tr>
+              <td class="mono">correct-horse-battery-staple-47</td>
+              <td class="bad">No symbol</td>
+              <td class="good">Excellent · 100/100</td>
+              <td>Thirty characters of ordinary words beats eleven of punctuation.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== CTA ==== -->
+<section class="section">
+  <div class="container center">
+    <h2 style="font-size:24px">Try it on a password you are not using</h2>
+    <p class="soft" style="max-width:520px;margin:8px auto 0">
+      Nothing is uploaded, nothing is stored. Change the last character and
+      watch the score and the breach verdict move.
+    </p>
+    <div class="row mt-3" style="justify-content:center">
+      <a class="btn lg primary" href="{{ url_for('analyser') }}">Open the analyser</a>
+      <a class="btn lg" href="{{ url_for('dashboard') }}">View statistics</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

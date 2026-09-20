@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Password Strength Analyser{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('psa-theme');
+        if (!t && window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+        document.documentElement.setAttribute('data-theme', t || 'light');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="{{ url_for('landing') }}">
+    <span class="mark">🔐</span><span>Strength Analyser</span>
+  </a>
+  <span class="muted">/</span>
+  <span class="title">{% block page_title %}{% endblock %}</span>
+  <span class="spacer"></span>
+  <a class="btn sm ghost" href="{{ url_for('landing') }}">Home</a>
+  {% if current_user.is_authenticated %}
+    <a class="btn sm" href="{{ url_for('logout') }}">Log out</a>
+  {% else %}
+    <a class="btn sm primary" href="{{ url_for('login') }}">Log in</a>
+  {% endif %}
+  <button class="icon-btn" id="themeToggle" title="Toggle theme">☾</button>
+</header>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div class="group">
+      <span class="eyebrow">Analysis</span>
+      <a href="{{ url_for('analyser') }}"
+         class="{{ 'active' if request.endpoint == 'analyser' }}">
+        <span class="ico">⌕</span>Analyser</a>
+      <a href="{{ url_for('dashboard') }}"
+         class="{{ 'active' if request.endpoint == 'dashboard' }}">
+        <span class="ico">◫</span>Statistics</a>
+      <a href="{{ url_for('history') }}"
+         class="{{ 'active' if request.endpoint == 'history' }}">
+        <span class="ico">☰</span>History</a>
+    </div>
+
+    {% if current_user.is_admin %}
+    <div class="group">
+      <span class="eyebrow">Administration</span>
+      <a href="{{ url_for('admin') }}"
+         class="{{ 'active' if request.endpoint == 'admin' }}">
+        <span class="ico">◎</span>Admin panel</a>
+    </div>
+    {% endif %}
+
+    {% if current_user.is_authenticated %}
+    <div class="user-card">
+      <div class="nm">
+        {{ current_user.username }}
+        {% if current_user.is_admin %}<span class="badge info">admin</span>{% endif %}
+      </div>
+      <div class="em">{{ current_user.email }}</div>
+    </div>
+    {% else %}
+    <div class="user-card">
+      <div class="nm">Not signed in</div>
+      <div class="em">Log in to keep a private history of your checks.</div>
+      <a class="btn sm block mt-1" href="{{ url_for('login') }}">Log in</a>
+    </div>
+    {% endif %}
+  </aside>
+
+  <main class="content">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flashes">
+          {% for category, message in messages %}
+            <div class="alert {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

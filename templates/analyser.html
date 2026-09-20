@@ -1,0 +1,143 @@
+{% extends "app_base.html" %}
+{% block title %}Analyser · Password Strength Analyser{% endblock %}
+{% block page_title %}Analyser{% endblock %}
+
+{% block content %}
+
+<div class="grid-2 sidebar-left">
+
+  <!-- ============================== INPUT ============================== -->
+  <div>
+    <div class="card">
+      <div class="card-head"><h2>Check a password</h2></div>
+      <div class="card-body">
+        <form id="analyseForm" autocomplete="off">
+          <div class="field">
+            <label for="passwordInput">Password</label>
+            <div class="row tight" style="flex-wrap:nowrap">
+              <input class="input" type="password" id="passwordInput"
+                     placeholder="Type a password…" autocomplete="new-password"
+                     spellcheck="false">
+              <button type="button" class="icon-btn" id="revealBtn"
+                      title="Show / hide">👁</button>
+            </div>
+            <div class="muted tiny mt-1">
+              The SHA-1 digest is computed in your browser. Only its first
+              five characters are ever sent.
+            </div>
+          </div>
+          <div class="row tight">
+            <button class="btn primary" type="submit">Analyse</button>
+            <button class="btn" type="button" id="clearBtn">Clear</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card" id="breachCard" style="display:none">
+      <div class="card-head">
+        <h3>Breach check</h3>
+        <span class="badge" id="breachBadge">…</span>
+      </div>
+      <div class="card-body">
+        <p class="mb-0 small" id="breachText"></p>
+      </div>
+    </div>
+
+    <div class="card" id="findingsWrap" style="display:none">
+      <div class="card-head"><h3>Weaknesses found</h3></div>
+      <div class="card-body" id="findings"></div>
+    </div>
+
+  </div>
+
+  <!-- ============================== RESULT ============================= -->
+  <div>
+    <div class="card" id="emptyState">
+      <div class="card-body center" style="padding:44px 20px">
+        <div style="font-size:30px;color:var(--muted)">⌕</div>
+        <h3 class="mt-2">No password entered</h3>
+        <p class="muted small mb-0" style="max-width:340px;margin:6px auto 0">
+          Type a password on the left, then click Analyse to check it.
+        </p>
+      </div>
+    </div>
+
+    <div id="resultPanel" style="display:none">
+      <div class="card">
+        <div class="score-panel">
+          <div class="score-badge">
+            <div class="center">
+              <div class="n" id="scoreVal">0</div>
+              <div class="u">score</div>
+            </div>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div id="verdictText" style="font-size:17px;font-weight:600">—</div>
+            <div class="meter" id="meter">
+              <span class="seg"></span><span class="seg"></span>
+              <span class="seg"></span><span class="seg"></span>
+              <span class="seg"></span>
+            </div>
+          </div>
+        </div>
+        <div class="card-body" style="padding-top:0">
+          <div class="kv"><span class="k">Length</span>
+            <span class="v" id="kLength">—</span></div>
+          <div class="kv"><span class="k">Entropy</span>
+            <span class="v" id="kEntropy">—</span></div>
+          <div class="kv"><span class="k">Character pool</span>
+            <span class="v" id="kPool">—</span></div>
+          <div class="callout mt-2" id="crackMethod">
+            <div class="ico">⌕</div>
+            <div><strong>How it can be cracked</strong><br>
+              <span id="crackMethodText">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><h3>Requirements</h3></div>
+        <div class="card-body"><div class="checks" id="checks"></div></div>
+      </div>
+
+      <div class="card" id="tipsWrap" style="display:none">
+        <div class="card-head"><h3>How to improve</h3></div>
+        <div class="card-body"><ul class="tips" id="tips"></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if current_user.is_authenticated %}
+<div class="card mt-3">
+  <div class="card-head"><h3>Your activity</h3></div>
+  <div class="card-body">
+    <div class="stat-grid">
+      <div class="metric" style="box-shadow:none">
+        <div class="label">Checks</div>
+        <div class="value">{{ stats.total }}</div>
+      </div>
+      <div class="metric" style="box-shadow:none">
+        <div class="label">Average score</div>
+        <div class="value">{{ stats.avg_score }}</div>
+      </div>
+      <div class="metric" style="box-shadow:none">
+        <div class="label">Found in breaches</div>
+        <div class="value danger">{{ stats.breached }}</div>
+        <div class="sub">{{ stats.breached_pct }}% of your checks</div>
+      </div>
+      <div class="metric" style="box-shadow:none">
+        <div class="label">Weak (score &lt; 41)</div>
+        <div class="value warn">{{ stats.weak }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>window.PSA_LOGGED_IN = {{ 'true' if current_user.is_authenticated else 'false' }};</script>
+{% endblock %}

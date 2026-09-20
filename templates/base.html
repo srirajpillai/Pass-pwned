@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Password Strength Analyser{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('psa-theme');
+        if (!t && window.matchMedia &&
+            window.matchMedia('(prefers-color-scheme: dark)').matches) t = 'dark';
+        document.documentElement.setAttribute('data-theme', t || 'light');
+      } catch (e) {}
+    })();
+  </script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <a class="brand" href="{{ url_for('landing') }}">
+    <span class="mark">🔐</span><span>Strength Analyser</span>
+  </a>
+  <div class="links">
+    <a href="{{ url_for('analyser') }}">Analyser</a>
+    <a href="{{ url_for('dashboard') }}">Statistics</a>
+  </div>
+  <span class="spacer"></span>
+  {% if current_user.is_authenticated %}
+    <a class="btn sm" href="{{ url_for('analyser') }}">Open app</a>
+  {% else %}
+    <a class="btn sm" href="{{ url_for('login') }}">Log in</a>
+    <a class="btn sm primary" href="{{ url_for('register') }}">Get started</a>
+  {% endif %}
+  <button class="icon-btn" id="themeToggle" title="Toggle theme">☾</button>
+</nav>
+
+<div class="container" style="padding-top:18px">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          <div class="alert {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
+
+{% block content %}{% endblock %}
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

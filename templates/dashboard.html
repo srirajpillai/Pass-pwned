@@ -1,0 +1,274 @@
+{% extends "app_base.html" %}
+{% block title %}Statistics · Password Strength Analyser{% endblock %}
+{% block page_title %}Statistics{% endblock %}
+
+{% macro bar_row(label, count, pct, tone, sub) %}
+<div class="mb-2">
+  <div class="row" style="justify-content:space-between;margin-bottom:4px">
+    <span class="small soft">{{ label }}</span>
+    <span class="small">
+      <strong>{{ count }}</strong>
+      <span class="muted">· {{ pct }}%</span>
+      {% if sub %}<span class="muted tiny">{{ sub }}</span>{% endif %}
+    </span>
+  </div>
+  <div class="track"><i class="{{ tone }}" style="width:{{ pct }}%"></i></div>
+</div>
+{% endmacro %}
+
+{% block content %}
+
+<div class="page-head">
+  <h1>Statistics</h1>
+  <p>
+    {% if see_all %}Aggregated across every check recorded on this installation.
+    {% elif scoped %}Aggregated across your own checks.
+    {% else %}Aggregated across every check recorded on this installation.
+    <a href="{{ url_for('login') }}">Log in</a> to see only yours.{% endif %}
+  </p>
+</div>
+
+{% if can_see_all %}
+<div class="row tight mb-2">
+  <a class="btn sm {{ 'primary' if not see_all else '' }}"
+     href="{{ url_for('dashboard') }}">My checks</a>
+  <a class="btn sm {{ 'primary' if see_all else '' }}"
+     href="{{ url_for('dashboard', scope='all') }}">All users</a>
+</div>
+{% endif %}
+
+{% if current_user.is_authenticated %}
+<div class="card mb-2">
+  <div class="card-head">
+    <h3>Organisation integration</h3>
+    <span class="badge info">API</span>
+  </div>
+  <div class="card-body">
+    <p class="small soft">Use your organisation key to send password checks
+      from your own application. Results appear in these statistics.</p>
+    {% if current_user.integration_key_hash %}
+      <p class="small mb-2">Current key: <span class="mono">{{ current_user.integration_key_prefix }}…</span></p>
+    {% endif %}
+    <form method="post" action="{{ url_for('generate_api_key') }}">
+      <button class="btn primary" type="submit">
+        {{ 'Generate new API key' if current_user.integration_key_hash else 'Generate API key' }}
+      </button>
+      <span class="muted tiny">The full key is shown only once.</span>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- ============================== HEADLINE ============================== -->
+<div class="stat-grid mb-2">
+  <div class="metric">
+    <div class="label">Checks recorded</div>
+    <div class="value">{{ data.headline.total }}</div>
+    <div class="sub">average score {{ data.headline.avg_score }}</div>
+  </div>
+  <div class="metric">
+    <div class="label">Average score</div>
+    <div class="value">{{ data.headline.avg_score }}</div>
+    <div class="sub">out of 100</div>
+  </div>
+  <div class="metric">
+    <div class="label">Found in breaches</div>
+    <div class="value danger">{{ data.headline.breached }}</div>
+    <div class="sub">{{ data.headline.breached_pct }}% of all checks</div>
+  </div>
+  <div class="metric">
+    <div class="label">Weak (score &lt; 41)</div>
+    <div class="value warn">{{ data.headline.weak }}</div>
+    <div class="sub">{{ data.headline.weak_pct }}% of all checks</div>
+  </div>
+</div>
+
+{% if data.headline.total == 0 %}
+
+<div class="card">
+  <div class="empty">
+    No checks recorded yet —
+    <a href="{{ url_for('analyser') }}">analyse a password</a> to populate the
+    statistics.
+  </div>
+</div>
+
+{% else %}
+
+<!-- ========================= ACTIVITY + DISTRIBUTION ==================== -->
+<div class="grid-2 sidebar-right">
+
+  <!-- checks over time -->
+  <div class="card">
+    <div class="card-head">
+      <h3>Checks per day</h3>
+      <span class="badge">last 14 days</span>
+    </div>
+    <div class="card-body">
+      {% set n = data.daily|length %}
+      {% set maxc = data.daily|map(attribute='count')|max %}
+      {% set maxc = maxc if maxc > 0 else 1 %}
+      {% set W, H = 620, 180 %}
+      {% set pl, pb, pt = 30, 24, 12 %}
+      {% set iw = W - pl - 10 %}
+      {% set ih = H - pb - pt %}
+      {% set ns = namespace(line='', area='') %}
+      {% for d in data.daily %}
+        {% set x = pl + (loop.index0 / (n - 1)) * iw %}
+        {% set y = pt + ih - (d.count / maxc) * ih %}
+        {% set ns.line = ns.line ~ x|round(1) ~ ',' ~ y|round(1) ~ ' ' %}
+      {% endfor %}
+      {% set x0 = pl %}
+      {% set ybase = pt + ih %}
+      {% set xn = pl + iw %}
+      {% set ns.area = x0|round(1) ~ ',' ~ ybase|round(1) ~ ' ' ~ ns.line ~ xn|round(1) ~ ',' ~ ybase|round(1) %}
+
+      <svg class="chart" viewBox="0 0 {{ W }} {{ H }}" preserveAspectRatio="none"
+           role="img" aria-label="Checks per day over the last 14 days">
+        <!-- horizontal grid -->
+        {% for i in range(5) %}
+          {% set gy = pt + (ih / 4) * i %}
+          <line class="grid" x1="{{ pl }}" y1="{{ gy|round(1) }}"
+                x2="{{ xn|round(1) }}" y2="{{ gy|round(1) }}"/>
+          <text class="tick" x="0" y="{{ (gy + 3)|round(1) }}">
+            {{ (maxc - (maxc / 4) * i)|round|int }}</text>
+        {% endfor %}
+        <line class="axis" x1="{{ pl }}" y1="{{ ybase|round(1) }}"
+              x2="{{ xn|round(1) }}" y2="{{ ybase|round(1) }}"/>
+
+        <polygon class="area" points="{{ ns.area }}"/>
+        <polyline class="line" points="{{ ns.line }}"/>
+        {% for d in data.daily %}
+          {% set x = pl + (loop.index0 / (n - 1)) * iw %}
+          {% set y = pt + ih - (d.count / maxc) * ih %}
+          <circle class="pt" cx="{{ x|round(1) }}" cy="{{ y|round(1) }}" r="2.5"/>
+        {% endfor %}
+        {% for d in data.daily %}
+          {% if loop.index0 % 2 == 0 or loop.last %}
+            {% set x = pl + (loop.index0 / (n - 1)) * iw %}
+            <text class="tick" x="{{ x|round(1) }}" y="{{ H - 6 }}"
+                  text-anchor="middle">{{ d.date }}</text>
+          {% endif %}
+        {% endfor %}
+      </svg>
+    </div>
+  </div>
+
+  <!-- score distribution -->
+  <div class="card">
+    <div class="card-head"><h3>Score distribution</h3></div>
+    <div class="card-body">
+      {% set tot = data.headline.total %}
+      {% for b in data.distribution %}
+        {% set pct = (100.0 * b.count / tot)|round(1) %}
+        {{ bar_row(b.label ~ ' (' ~ b.lo ~ '–' ~ b.hi ~ ')', b.count, pct, b.tone) }}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- ====================== WEAKNESSES + LENGTH =========================== -->
+<div class="grid-2 mt-2">
+
+  <div class="card">
+    <div class="card-head">
+      <h3>Most common weaknesses</h3>
+      {% if data.weaknesses %}<span class="badge">{{ data.weakness_total }} findings</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if data.weaknesses %}
+        {% for w in data.weaknesses %}
+          {{ bar_row(w.name, w.count, w.pct, 'warn') }}
+        {% endfor %}
+      {% else %}
+        <div class="empty">No weaknesses detected yet.</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Average score by length</h3></div>
+    <div class="card-body">
+      {% if data.lengths %}
+        {% set L = data.lengths|length %}
+        {% set W2, H2 = 560, 190 %}
+        {% set pl2, pb2, pt2 = 28, 26, 12 %}
+        {% set iw2 = W2 - pl2 - 10 %}
+        {% set ih2 = H2 - pb2 - pt2 %}
+        {% set bw = iw2 / L %}
+        <svg class="chart" viewBox="0 0 {{ W2 }} {{ H2 }}"
+             role="img" aria-label="Average score grouped by password length">
+          {% for i in range(5) %}
+            {% set gy = pt2 + (ih2 / 4) * i %}
+            <line class="grid" x1="{{ pl2 }}" y1="{{ gy|round(1) }}"
+                  x2="{{ (pl2 + iw2)|round(1) }}" y2="{{ gy|round(1) }}"/>
+            <text class="tick" x="0" y="{{ (gy + 3)|round(1) }}">
+              {{ 100 - (100 / 4) * i|round|int }}</text>
+          {% endfor %}
+          <line class="axis" x1="{{ pl2 }}" y1="{{ (pt2 + ih2)|round(1) }}"
+                x2="{{ (pl2 + iw2)|round(1) }}" y2="{{ (pt2 + ih2)|round(1) }}"/>
+          {% for r in data.lengths %}
+            {% set bh = (r.avg / 100) * ih2 %}
+            {% set x = pl2 + loop.index0 * bw + bw * 0.18 %}
+            {% set y = pt2 + ih2 - bh %}
+            <rect class="bar" x="{{ x|round(1) }}" y="{{ y|round(1) }}"
+                  width="{{ (bw * 0.64)|round(1) }}" height="{{ bh|round(1) }}"
+                  rx="2"/>
+            <text class="tick" x="{{ (x + bw * 0.32)|round(1) }}"
+                  y="{{ (H2 - 8)|round(1) }}" text-anchor="middle">{{ r.length }}</text>
+            <text class="val" x="{{ (x + bw * 0.32)|round(1) }}"
+                  y="{{ (y - 4)|round(1) }}" text-anchor="middle">{{ r.avg|int }}</text>
+          {% endfor %}
+        </svg>
+        <div class="muted tiny center mt-1">password length in characters</div>
+      {% else %}
+        <div class="empty">No data yet.</div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- ============================== RECENT ================================ -->
+<div class="card mt-2">
+  <div class="card-head">
+    <h3>Recent checks</h3>
+    <a class="btn sm" href="{{ url_for('history') if current_user.is_authenticated else url_for('admin') }}">
+      View all</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>When</th><th>Score</th><th>Verdict</th><th>Length</th>
+          <th>Entropy</th><th>Crack time</th><th>Weaknesses</th><th>Breach</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for r in data.recent %}
+        <tr>
+          <td>{{ r.created_at.strftime('%d %b, %H:%M') }}</td>
+          <td><strong>{{ r.score }}</strong></td>
+          <td>{{ r.verdict }}</td>
+          <td>{{ r.length }}</td>
+          <td>{{ r.entropy_bits }} bits</td>
+          <td>{{ r.crack_time }}</td>
+          <td class="wrap-ok">
+            {% if r.pattern_names %}
+              {{ r.pattern_names|join(', ') }}
+            {% else %}
+              <span class="muted">none</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if r.breached %}<span class="badge danger">{{ r.breach_count }}×</span>
+            {% else %}<span class="badge ok">clean</span>{% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endif %}
+{% endblock %}
